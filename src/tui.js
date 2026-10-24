@@ -196,7 +196,7 @@ async function settings() {
   const goal = keep(cfg.productGoal, await ask('Settings — product goal', `Goal [${dim(trunc(cfg.productGoal || '', 40))}]: `));
   const autoRoute = (keep(cfg.autoRoute !== false ? 'y' : 'n', (await ask('Settings — model routing', `Auto-route models per task? y/n [${cfg.autoRoute !== false ? 'y' : 'n'}]: `)).toLowerCase())) === 'y';
   const effort = keep(cfg.effort || 'high', (await ask('Settings — effort', `Effort low/medium/high [${cfg.effort || 'high'}]: `)).toLowerCase());
-  const model = keep(cfg.model || '', await ask('Settings — model', `Force model (blank = auto) [${cfg.model || 'auto'}]: `));
+  const model = keep(cfg.model || '', await ask('Settings — model', `Force model — blank=auto, claude-fable-5 (best results), claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5 [${cfg.model || 'auto'}]: `));
   const maxCycles = parseInt(keep(String(cfg.maxCyclesPerRun || 0), await ask('Settings — cycles', `Max cycles per run, 0 = all day [${cfg.maxCyclesPerRun || 0}]: `)), 10) || 0;
   const depthFirst = (keep(cfg.depthFirst !== false ? 'y' : 'n', (await ask('Settings — depth', `Depth-first (harden before new features)? y/n [${cfg.depthFirst !== false ? 'y' : 'n'}]: `)).toLowerCase())) === 'y';
   state.updateConfig(sel, { productGoal: goal, autoRoute, effort, model: model.trim(), maxCyclesPerRun: maxCycles, depthFirst });

@@ -19,13 +19,18 @@ function clampTail(body, maxChars) {
   return `[… ${s.length - maxChars} older chars trimmed for token efficiency — full history is on disk and is compacted periodically …]\n\n` + s.slice(-maxChars);
 }
 
-function architectPrompt({ productGoal, roadmap, plan, state, decisions, directives, depthFirst, finishRoadmap }) {
+function architectPrompt({ productGoal, roadmap, plan, state, decisions, directives, depthFirst, finishRoadmap, lastOutcome }) {
   const open = plan.tasks.filter((t) => t.status === 'todo' || t.status === 'blocked');
-  const doneCount = plan.tasks.filter((t) => t.status === 'done').length;
+  const done = plan.tasks.filter((t) => t.status === 'done');
+  // Titles only, recent last — deterministic ground truth of what was already
+  // built, so a fresh architect can't re-emit finished work when STATE.md drifts.
+  const doneList = done.slice(-40).map((t) => `${t.id}: ${t.title}`).join('\n');
   return [
     `You are the ARCHITECT of a software project. You run in a FRESH context every cycle and have NO memory beyond the files below. Reconstruct your understanding entirely from them.`,
     `PRODUCT GOAL:\n${productGoal}`,
-    `Progress so far: ${doneCount} task(s) completed.`,
+    `Progress so far: ${done.length} task(s) completed.`,
+    doneList ? fence('ALREADY COMPLETED TASKS (do NOT redo these)', doneList) : '',
+    lastOutcome ? fence('PREVIOUS CYCLE OUTCOME — the last cycle produced NO committed work; do not repeat this failure', lastOutcome) : '',
     `Your job THIS cycle: decide the SINGLE next task to build, OR extend the roadmap, OR declare done/blocked. Think about what most advances a genuinely good product.`,
     finishRoadmap
       ? `MODE: FINISH THE ROADMAP. Work ONLY through the EXISTING roadmap below — do NOT invent new capabilities or use "extend_roadmap"/"roadmap_additions". Identify roadmap items that are not yet done or not yet robust (the roadmap may be a long changelog: look for unchecked "[ ]"/"[~]" items, "remaining"/"TODO"/"what's next" sections, and anything STATE says is incomplete) and advance them one task at a time. When EVERY roadmap item is genuinely built, tested, and hardened, return {"action":"done"} with a reason. Do not pad with busywork to avoid finishing.`

@@ -23,11 +23,12 @@ function ensure(projectPath, productGoal) {
     autoRoute: true,
     model: '',
     effort: 'high',
-    architectModel: '', // '' = Opus (best planning). Set 'claude-sonnet-4-6' to cut tokens on long runs.
-    reviewerModel: '',  // '' = Sonnet.
+    architectModel: '', // '' = Fable 5 (best planning/results). Set 'claude-sonnet-4-6' to cut tokens on long runs.
+    reviewerModel: '',  // '' = Sonnet. Set 'claude-fable-5' for the strongest review.
     maxBudgetUsdPerAgent: 5,
     maxCyclesPerRun: 0,
     maxRunUsd: 0, // 0 = off. Set e.g. 20 to stop the whole run after ~$20 ESTIMATED usage (proxy for "don't burn too much of my limit").
+    maxStallCycles: 3, // stop after N consecutive cycles with no committed work (rejected briefs / blocked tasks / no-op workers)
     compactEvery: 10,
     depthFirst: true,
     gates: { test: 'auto', build: 'auto', typecheck: 'auto' }
@@ -64,7 +65,9 @@ function read(projectPath, file) {
   try { return fs.readFileSync(p(projectPath, file), 'utf8'); } catch (_) { return ''; }
 }
 function write(projectPath, file, content) {
-  fs.writeFileSync(p(projectPath, file), content);
+  const fp = p(projectPath, file);
+  fs.mkdirSync(path.dirname(fp), { recursive: true }); // tolerate nested paths (briefs/, cycles/)
+  fs.writeFileSync(fp, content);
 }
 function readPlan(projectPath) {
   try { return JSON.parse(fs.readFileSync(p(projectPath, 'plan.json'), 'utf8')); }
